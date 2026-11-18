@@ -58,6 +58,10 @@ Configurator and docs: [mcp.apify.com](https://mcp.apify.com) and [docs.apify.co
 
 **FMCSA.** List active motor carriers in Dallas, TX that have a phone number, and include USDOT, MC number, fleet size, safety rating, and authority status.
 
+### Official MCP Registry metadata
+
+`server.json` files for the three tools above live in [`mcp/`](mcp/). They describe the hosted Apify MCP endpoints so the official MCP Registry (and directories that copy it, including Glama) can list each tool under `io.github.benbarazandeh/...`. See [`mcp/README.md`](mcp/README.md) for the publish steps.
+
 ## n8n workflows
 
 Ready-to-import workflow JSON lives in [`examples/n8n`](examples/n8n). See that folder's [README](examples/n8n/README.md) for setup notes.
