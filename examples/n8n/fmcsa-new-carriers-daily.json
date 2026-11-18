@@ -1,0 +1,693 @@
+{
+  "name": "Log new FMCSA carriers daily, dedupe in Sheets, and email a digest",
+  "nodes": [
+    {
+      "id": "c9a2fa10-6a06-40ce-bb0c-bfce8e67a48b",
+      "name": "Overview",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        48,
+        40
+      ],
+      "parameters": {
+        "content": "### How it works\nThis workflow is for freight brokers, dispatchers, and compliance teams who need a daily list of newly registered US trucking companies they can actually contact. Each morning it reads USDOT numbers already in your Google Sheet, then runs the FMCSA Carrier Leads Apify actor for companies added in the last N days in the state and optional city you set. It keeps carriers with active operating authority and a phone or email, skips any USDOT number already logged, normalizes the fields, and appends only the new rows. You get a Gmail digest with the count and a short HTML table. If none qualify, you get a short all-clear. If the actor call fails, or another node errors, you get an email instead of a silent failure.\n\n### Setup\n1. Create an Apify account. The free plan includes $5 of monthly platform credit and needs no card. Create a Header Auth credential with name Authorization and value Bearer YOUR_APIFY_TOKEN.\n2. Create a Google Sheet with a tab named Carriers and the headers in the Sheet headers note. Connect Google Sheets OAuth2 and paste the sheet URL into both Sheets nodes.\n3. Connect Gmail OAuth2. Set digestEmail in Set search settings, and use the same address on Email workflow error.\n4. In workflow settings, set this workflow as its own Error Workflow.\n5. Run it once by hand, then activate. Each saved carrier costs $0.002. Keep maxItems modest so the actor finishes within the 5-minute sync limit.\n\n### Customization\nEdit state, city, daysBack, maxItems, entityType, and authorityStatus in Set search settings. Turn off requireActiveAuthority to include new USDOT records that do not yet have operating authority. Turn off requireContact to keep records with no phone or email. Change the 7:00 schedule to match your timezone.\n",
+        "width": 900,
+        "height": 620
+      }
+    },
+    {
+      "id": "90d6acab-7600-4fbe-8853-70369a33920d",
+      "name": "Configure the daily search",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        48,
+        700
+      ],
+      "parameters": {
+        "content": "## Configure the daily search\nEdit state, city, days-back, max items, and digestEmail here. These values are the only ones most users need to change.",
+        "width": 620,
+        "height": 280,
+        "color": 7
+      }
+    },
+    {
+      "id": "c75851d4-9df5-4a33-b6b6-ad77eebfe02b",
+      "name": "Fetch new USDOT records",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        650,
+        700
+      ],
+      "parameters": {
+        "content": "## Fetch new USDOT records\nReads existing DOT numbers first so a sheet error does not spend Apify credit, then runs the actor. A failed actor call emails you on the lower branch.",
+        "width": 620,
+        "height": 580,
+        "color": 7
+      }
+    },
+    {
+      "id": "24f4d878-d7c1-4281-9fb5-5f3f56de43d1",
+      "name": "Filter and normalize leads",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        1250,
+        700
+      ],
+      "parameters": {
+        "content": "## Filter and normalize leads\nKeeps carriers with active operating authority and a phone or email, skips USDOT numbers already in the sheet, and flattens array fields for Sheets and the digest.",
+        "width": 900,
+        "height": 280,
+        "color": 7
+      }
+    },
+    {
+      "id": "919775dc-9a85-4807-97e8-1b2d01e7ce7d",
+      "name": "Log and email the digest",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        2150,
+        620
+      ],
+      "parameters": {
+        "content": "## Log and email the digest\nAppends only new carriers. Emails an HTML table when there are new rows, or a short all-clear when the run finds none.",
+        "width": 1220,
+        "height": 680,
+        "color": 7
+      }
+    },
+    {
+      "id": "205b9ea4-9c9c-4b09-96b2-e5d96ead1496",
+      "name": "Sheet headers",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        3080,
+        1140
+      ],
+      "parameters": {
+        "content": "## Sheet headers\nOn tab `Carriers`, row 1: `dotNumber, mcNumber, legalName, dbaName, entityType, usdotStatus, commonAuthority, contractAuthority, brokerAuthority, authorityPending, insuranceBipdOnFileUsd, phone, email, street, city, state, zip, powerUnits, totalDrivers, cargoTypes, safetyRating, usdotAddedDate, firstAuthorityGrantedDate, saferUrl, loggedAt`. Do not rename `dotNumber`.",
+        "width": 360,
+        "height": 300,
+        "color": 7
+      }
+    },
+    {
+      "id": "67dcca43-e523-4ffe-ac80-99692c968923",
+      "name": "Handle unexpected errors",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        48,
+        1420
+      ],
+      "parameters": {
+        "content": "## Handle unexpected errors\nAfter import, set this workflow as its own Error Workflow so any unhandled failure (sheet auth, Gmail, and so on) emails you.",
+        "width": 620,
+        "height": 280,
+        "color": 7
+      }
+    },
+    {
+      "id": "353349f7-37a3-4cc2-a6ec-de799a684401",
+      "name": "Set your email before activating",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        2780,
+        500
+      ],
+      "parameters": {
+        "content": "## Set your email before activating\nReplace you@example.com in Set search settings (`digestEmail`) and in the To field of Email workflow error. Otherwise test emails go to the placeholder.",
+        "width": 360,
+        "height": 150,
+        "color": 3
+      }
+    },
+    {
+      "id": "8812fe95-fe8e-4d25-8a57-9673f8c05b6d",
+      "name": "Schedule daily at 7am",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        80,
+        780
+      ],
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 7 * * *"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "a9995105-dcee-4f67-935d-b9cfa782a799",
+      "name": "Set search settings",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        380,
+        780
+      ],
+      "parameters": {
+        "mode": "manual",
+        "includeOtherFields": false,
+        "assignments": {
+          "assignments": [
+            {
+              "id": "3c5a21fa-b9ee-4e66-aa71-0297eaeafd68",
+              "name": "states",
+              "type": "string",
+              "value": "TX"
+            },
+            {
+              "id": "3b1a15fa-6ed0-48d9-89d2-1858430fd6c6",
+              "name": "city",
+              "type": "string",
+              "value": ""
+            },
+            {
+              "id": "0d70b928-db99-437b-999b-55397e5cc450",
+              "name": "daysBack",
+              "type": "number",
+              "value": 1
+            },
+            {
+              "id": "1b98834d-9565-4f21-86a0-d3cb5ef8c529",
+              "name": "maxItems",
+              "type": "number",
+              "value": 25
+            },
+            {
+              "id": "58011a53-47ac-4483-924d-c660427f9d85",
+              "name": "entityType",
+              "type": "string",
+              "value": "carrier"
+            },
+            {
+              "id": "b23b5e9a-dcaa-4684-9dfa-c46c5f8f14f7",
+              "name": "usdotStatus",
+              "type": "string",
+              "value": "active"
+            },
+            {
+              "id": "4f870dc6-63c5-4945-90a4-dc1dc5cefa3a",
+              "name": "authorityStatus",
+              "type": "string",
+              "value": "active"
+            },
+            {
+              "id": "32f50a44-46a5-4bc8-8734-57e109c09653",
+              "name": "requireActiveAuthority",
+              "type": "boolean",
+              "value": true
+            },
+            {
+              "id": "2ff3d724-6b70-4006-a698-deff93dbe769",
+              "name": "requireContact",
+              "type": "boolean",
+              "value": true
+            },
+            {
+              "id": "c1f18563-5ad5-4d36-8c82-ad9df6186700",
+              "name": "digestEmail",
+              "type": "string",
+              "value": "you@example.com"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "notes": "states: comma-separated US abbreviations (e.g. TX or TX,OK,LA). city: optional, e.g. Dallas, TX (blank = whole state). daysBack: 1 = USDOT numbers added since yesterday. maxItems: daily cap and cost cap ($0.002 each). entityType: carrier, broker, carrier_and_broker, or any. usdotStatus: active, inactive, or any. authorityStatus: actor-side filter — any, active, broker_active, pending, or none. requireActiveAuthority: keep rows where common, contract, or broker authority is Active. requireContact: keep rows with a phone or email. digestEmail: where the daily digest and actor-failure email are sent."
+    },
+    {
+      "id": "f159b9cf-ff7e-4bc6-b894-fb8032f49df7",
+      "name": "Get existing USDOT numbers",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        680,
+        780
+      ],
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "mode": "url",
+          "value": "https://docs.google.com/spreadsheets/d/YOUR_SHEET_ID/edit"
+        },
+        "sheetName": {
+          "__rl": true,
+          "mode": "name",
+          "value": "Carriers"
+        },
+        "options": {}
+      },
+      "alwaysOutputData": true,
+      "executeOnce": true,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "id": "91ee6bee-be7f-48d1-9217-50a3b175499d",
+      "name": "Run FMCSA carrier search",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        980,
+        780
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.apify.com/v2/acts/dedicated_crest~fmcsa-trucking-carrier-leads/run-sync-get-dataset-items?timeout=300&clean=true",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({\n  states: String($('Set search settings').first().json.states || '').split(',').map(s => s.trim()).filter(Boolean),\n  cities: String($('Set search settings').first().json.city || '').split(',').map(s => s.trim()).filter(Boolean),\n  entityType: $('Set search settings').first().json.entityType || 'carrier',\n  usdotStatus: $('Set search settings').first().json.usdotStatus || 'active',\n  authorityStatus: $('Set search settings').first().json.authorityStatus || 'any',\n  addedAfter: $today.minus({ days: Number($('Set search settings').first().json.daysBack) || 1 }).toFormat('yyyy-MM-dd'),\n  includeAuthorityData: true,\n  maxItems: Number($('Set search settings').first().json.maxItems) || 25\n}) }}",
+        "options": {
+          "timeout": 330000
+        }
+      },
+      "executeOnce": true,
+      "alwaysOutputData": true,
+      "onError": "continueErrorOutput",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "",
+          "name": "Apify API token (Header Auth)"
+        }
+      }
+    },
+    {
+      "id": "5cb6ad17-60e2-4c12-acf4-0b8cab440545",
+      "name": "Notify on actor failure",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        980,
+        1120
+      ],
+      "parameters": {
+        "sendTo": "={{ $('Set search settings').first().json.digestEmail }}",
+        "subject": "=FMCSA carrier search failed — {{ $now.toFormat('LLL d') }}",
+        "emailType": "html",
+        "message": "=<p style=\"font-family:Arial,sans-serif\">The Apify FMCSA actor did not return a dataset. No rows were added to the sheet.</p><p style=\"font-family:Arial,sans-serif\"><b>Error</b>: {{ $json.error?.message || $json.message || 'Unknown error' }}</p><pre style=\"font-family:monospace;font-size:12px;white-space:pre-wrap\">{{ JSON.stringify($json.error || $json, null, 2) }}</pre><p style=\"font-family:Arial,sans-serif;color:#666;font-size:12px\">Common causes: an invalid Apify token, a run that exceeded the 5-minute sync limit (lower maxItems), or the official open-data API returning HTTP 429. Check the latest run in your Apify console.</p>",
+        "options": {
+          "appendAttribution": false
+        }
+      },
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "id": "6c1671d8-7590-478f-890c-1daca9177a21",
+      "name": "Keep active contactable carriers",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1280,
+        780
+      ],
+      "parameters": {
+        "jsCode": "const s = $('Set search settings').first().json;\nconst flag = (v) => v !== false && v !== 'false' && v !== 0 && v !== '0';\nconst requireAuth = flag(s.requireActiveAuthority);\nconst requireContact = flag(s.requireContact);\nconst isActive = (v) => String(v || '').trim().toLowerCase() === 'active';\n\nconst out = [];\nfor (const item of $input.all()) {\n  const c = item.json || {};\n  if (c.dotNumber == null && !c.legalName) continue;\n\n  if (requireAuth) {\n    const hasAuth = isActive(c.commonAuthority) || isActive(c.contractAuthority) || isActive(c.brokerAuthority);\n    if (!hasAuth) continue;\n  }\n\n  if (requireContact) {\n    const phone = String(c.phone || c.cellPhone || '').trim();\n    const email = String(c.email || '').trim();\n    if (!phone && !email) continue;\n  }\n\n  out.push({ json: c });\n}\nreturn out;"
+      },
+      "alwaysOutputData": true
+    },
+    {
+      "id": "280c1801-1225-4ac8-ac3f-5725543681b9",
+      "name": "Remove already logged USDOT numbers",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1580,
+        780
+      ],
+      "parameters": {
+        "jsCode": "const logged = new Set(\n  $('Get existing USDOT numbers').all()\n    .map((i) => String(i.json.dotNumber ?? '').trim())\n    .filter(Boolean)\n);\nconst seen = new Set();\nconst out = [];\nfor (const item of $input.all()) {\n  const c = item.json || {};\n  const dot = String(c.dotNumber ?? '').trim();\n  if (!dot || logged.has(dot) || seen.has(dot)) continue;\n  seen.add(dot);\n  out.push({ json: c });\n}\nreturn out;"
+      },
+      "alwaysOutputData": true
+    },
+    {
+      "id": "7a8a4574-dc54-4df5-af36-0b3572e23030",
+      "name": "Normalize carrier fields",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1880,
+        780
+      ],
+      "parameters": {
+        "jsCode": "const join = (v) => Array.isArray(v) ? v.filter(Boolean).join('; ') : (v ?? '');\nconst str = (v) => (v === null || v === undefined) ? '' : String(v);\n\nreturn $input.all()\n  .map((item) => item.json || {})\n  .filter((c) => c.dotNumber != null && String(c.dotNumber).trim() !== '')\n  .map((c) => ({\n    json: {\n      dotNumber: str(c.dotNumber).trim(),\n      mcNumber: str(c.mcNumber),\n      legalName: str(c.legalName),\n      dbaName: str(c.dbaName),\n      entityType: str(c.entityType),\n      usdotStatus: str(c.usdotStatus),\n      commonAuthority: str(c.commonAuthority),\n      contractAuthority: str(c.contractAuthority),\n      brokerAuthority: str(c.brokerAuthority),\n      authorityPending: str(c.authorityPending),\n      insuranceBipdOnFileUsd: str(c.insuranceBipdOnFileUsd),\n      phone: str(c.phone),\n      email: str(c.email),\n      street: str(c.street),\n      city: str(c.city),\n      state: str(c.state),\n      zip: str(c.zip),\n      powerUnits: c.powerUnits ?? '',\n      totalDrivers: c.totalDrivers ?? '',\n      cargoTypes: join(c.cargoTypes),\n      safetyRating: str(c.safetyRating),\n      usdotAddedDate: str(c.usdotAddedDate),\n      firstAuthorityGrantedDate: str(c.firstAuthorityGrantedDate),\n      saferUrl: str(c.saferUrl),\n      loggedAt: $now.toISO(),\n    }\n  }));"
+      },
+      "alwaysOutputData": true
+    },
+    {
+      "id": "126d8e59-c7f7-46e0-9ded-2fee785e717d",
+      "name": "Collect new carriers",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2180,
+        780
+      ],
+      "parameters": {
+        "jsCode": "const carriers = $input.all()\n  .map((i) => i.json)\n  .filter((j) => j && j.dotNumber != null && String(j.dotNumber).trim() !== '');\n\nconst esc = (v) => String(v ?? '')\n  .replace(/&/g, '&amp;')\n  .replace(/</g, '&lt;')\n  .replace(/>/g, '&gt;')\n  .replace(/\"/g, '&quot;');\n\nconst authLabel = (c) => {\n  const parts = [];\n  if (String(c.commonAuthority || '').toLowerCase() === 'active') parts.push('common');\n  if (String(c.contractAuthority || '').toLowerCase() === 'active') parts.push('contract');\n  if (String(c.brokerAuthority || '').toLowerCase() === 'active') parts.push('broker');\n  return parts.join(', ') || 'none';\n};\n\nconst rows = carriers.slice(0, 50).map((c) => {\n  const dot = esc(c.dotNumber);\n  const safer = c.saferUrl ? `<a href=\"${esc(c.saferUrl)}\">${dot}</a>` : dot;\n  return `<tr>\n    <td style=\"padding:6px;border-bottom:1px solid #eee\">${safer}</td>\n    <td style=\"padding:6px;border-bottom:1px solid #eee\">${esc(c.legalName)}</td>\n    <td style=\"padding:6px;border-bottom:1px solid #eee\">${esc(c.city)}, ${esc(c.state)}</td>\n    <td style=\"padding:6px;border-bottom:1px solid #eee\">${esc(c.phone)}</td>\n    <td style=\"padding:6px;border-bottom:1px solid #eee\">${esc(c.email)}</td>\n    <td style=\"padding:6px;border-bottom:1px solid #eee\">${esc(authLabel(c))}</td>\n  </tr>`;\n}).join('');\n\nconst count = carriers.length;\nconst digestHtml = `<p style=\"font-family:Arial,sans-serif;font-size:14px\">Today's run found <b>${count}</b> new carrier${count === 1 ? '' : 's'} that passed your filters and were not already in your sheet.</p>\n<table style=\"font-family:Arial,sans-serif;font-size:13px;border-collapse:collapse;width:100%\">\n  <thead><tr>\n    <th style=\"text-align:left;padding:6px;border-bottom:2px solid #333\">USDOT</th>\n    <th style=\"text-align:left;padding:6px;border-bottom:2px solid #333\">Legal name</th>\n    <th style=\"text-align:left;padding:6px;border-bottom:2px solid #333\">City, ST</th>\n    <th style=\"text-align:left;padding:6px;border-bottom:2px solid #333\">Phone</th>\n    <th style=\"text-align:left;padding:6px;border-bottom:2px solid #333\">Email</th>\n    <th style=\"text-align:left;padding:6px;border-bottom:2px solid #333\">Active authority</th>\n  </tr></thead>\n  <tbody>${rows}</tbody>\n</table>\n<p style=\"font-family:Arial,sans-serif;color:#666;font-size:12px\">Showing up to 50 rows. All new carriers were appended to your Google Sheet.</p>`;\n\nreturn [{ json: { carriers, count, digestHtml } }];"
+      },
+      "alwaysOutputData": true
+    },
+    {
+      "id": "f04a389f-b583-47d4-8a58-6a7596ed125c",
+      "name": "Were any carriers new?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        2480,
+        780
+      ],
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "17463d0f-a81d-49dc-8e85-054307892164",
+              "leftValue": "={{ Number($json.count) }}",
+              "rightValue": 0,
+              "operator": {
+                "type": "number",
+                "operation": "gt"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "e7244b03-1a17-43dc-8703-1a4f41aa8ee4",
+      "name": "Email daily summary",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        2780,
+        680
+      ],
+      "parameters": {
+        "sendTo": "={{ $('Set search settings').first().json.digestEmail }}",
+        "subject": "={{ $json.count }} new FMCSA carrier{{ $json.count === 1 ? '' : 's' }} — {{ $now.toFormat('LLL d') }}",
+        "emailType": "html",
+        "message": "={{ $json.digestHtml }}",
+        "options": {
+          "appendAttribution": false
+        }
+      },
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "id": "2f31b676-c8f8-4654-bd2f-73837ec260e3",
+      "name": "Split out new carriers",
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [
+        2780,
+        880
+      ],
+      "parameters": {
+        "fieldToSplitOut": "carriers",
+        "options": {}
+      }
+    },
+    {
+      "id": "fdc1498a-14ef-4b8a-851f-54d5752ecdf2",
+      "name": "Append new carriers to sheet",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        3080,
+        880
+      ],
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "mode": "url",
+          "value": "https://docs.google.com/spreadsheets/d/YOUR_SHEET_ID/edit"
+        },
+        "sheetName": {
+          "__rl": true,
+          "mode": "name",
+          "value": "Carriers"
+        },
+        "columns": {
+          "mappingMode": "autoMapInputData",
+          "value": {},
+          "matchingColumns": [],
+          "schema": []
+        },
+        "options": {}
+      },
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "id": "aa56bc87-77b7-4d25-9950-7eb846e88708",
+      "name": "Email no-new-carriers notice",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        2780,
+        1120
+      ],
+      "parameters": {
+        "sendTo": "={{ $('Set search settings').first().json.digestEmail }}",
+        "subject": "=No new FMCSA carriers today — {{ $now.toFormat('LLL d') }}",
+        "emailType": "html",
+        "message": "=<p style=\"font-family:Arial,sans-serif\">The daily FMCSA search finished and found no new carriers that passed your filters and were not already in the sheet. Nothing was appended.</p><p style=\"font-family:Arial,sans-serif;color:#666;font-size:12px\">This all-clear means the workflow ran. If you expected new USDOT numbers, try a larger daysBack value, a wider state list, or turn off requireActiveAuthority (many brand-new USDOT records do not have operating authority yet).</p>",
+        "options": {
+          "appendAttribution": false
+        }
+      },
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "id": "7c03a255-0258-452e-8f20-aafa5d76bb8e",
+      "name": "When the workflow errors",
+      "type": "n8n-nodes-base.errorTrigger",
+      "typeVersion": 1,
+      "position": [
+        80,
+        1500
+      ],
+      "parameters": {}
+    },
+    {
+      "id": "cb60faa1-ce49-49e0-a8aa-5d8b82850ace",
+      "name": "Email workflow error",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        380,
+        1500
+      ],
+      "parameters": {
+        "sendTo": "you@example.com",
+        "subject": "=FMCSA carrier workflow failed — {{ $now.toFormat('LLL d') }}",
+        "emailType": "html",
+        "message": "=<p style=\"font-family:Arial,sans-serif\">The <b>{{ $json.workflow?.name || 'FMCSA carrier' }}</b> workflow failed.</p><p style=\"font-family:Arial,sans-serif\"><b>Last node:</b> {{ $json.execution?.lastNodeExecuted || $json.lastNodeExecuted || 'unknown' }}<br><b>Error:</b> {{ $json.execution?.error?.message || $json.error?.message || $json.message || 'Unknown error' }}</p><p style=\"font-family:Arial,sans-serif\"><a href=\"{{ $json.execution?.url || '#' }}\">Open the failed execution</a></p><p style=\"font-family:Arial,sans-serif;color:#666;font-size:12px\">Set this workflow as its own Error Workflow in workflow settings, and replace the To address on this node with your email.</p>",
+        "options": {
+          "appendAttribution": false
+        }
+      },
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "",
+          "name": "Gmail account"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Schedule daily at 7am": {
+      "main": [
+        [
+          {
+            "node": "Set search settings",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Set search settings": {
+      "main": [
+        [
+          {
+            "node": "Get existing USDOT numbers",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get existing USDOT numbers": {
+      "main": [
+        [
+          {
+            "node": "Run FMCSA carrier search",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Run FMCSA carrier search": {
+      "main": [
+        [
+          {
+            "node": "Keep active contactable carriers",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Notify on actor failure",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Keep active contactable carriers": {
+      "main": [
+        [
+          {
+            "node": "Remove already logged USDOT numbers",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Remove already logged USDOT numbers": {
+      "main": [
+        [
+          {
+            "node": "Normalize carrier fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Normalize carrier fields": {
+      "main": [
+        [
+          {
+            "node": "Collect new carriers",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Collect new carriers": {
+      "main": [
+        [
+          {
+            "node": "Were any carriers new?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Were any carriers new?": {
+      "main": [
+        [
+          {
+            "node": "Email daily summary",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Split out new carriers",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Email no-new-carriers notice",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split out new carriers": {
+      "main": [
+        [
+          {
+            "node": "Append new carriers to sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "When the workflow errors": {
+      "main": [
+        [
+          {
+            "node": "Email workflow error",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {},
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "meta": {
+    "templateCredsSetupCompleted": false
+  }
+}

@@ -1,0 +1,564 @@
+{
+  "name": "Grants.gov AI Grant Matcher: score new federal grants with AI, log to Sheets & email top matches",
+  "nodes": [
+    {
+      "id": "c7fb157a-ef1b-4d53-92a1-a6fde6924f7c",
+      "name": "Overview",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -460,
+        -520
+      ],
+      "parameters": {
+        "content": "## 🏛️ Grants.gov AI Grant Matcher\nEvery morning this workflow pulls newly posted & forecasted federal grants from Grants.gov using the **Grants.gov Scraper** Apify actor, skips anything already logged in your Google Sheet, asks an AI model to score each new grant **0–10** against your organization profile, logs every new grant with its score and reason, and emails you a digest of the best matches (score ≥ 7). No email is sent on days without strong matches.\n\n**Flow:** Schedule → Org profile → Read sheet → Apify run → Dedupe → AI scoring → Append to Sheet → Filter ≥7 → Gmail digest",
+        "width": 440,
+        "height": 460,
+        "color": 4
+      }
+    },
+    {
+      "id": "98220a4c-4a18-477f-a69f-3a2ce116070c",
+      "name": "Setup",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        0,
+        -520
+      ],
+      "parameters": {
+        "content": "## ⚙️ Setup (≈5 min)\n1. **Apify** – install the Apify node (`@apify/n8n-nodes-apify`), add an *Apify API* credential (token from console.apify.com → Settings → Integrations).\n2. **OpenAI** – add an *OpenAI* credential to the **OpenAI Chat Model** node (or swap in any chat model: Anthropic, Gemini, Ollama…).\n3. **Google Sheets** – create a sheet with a tab named `Grants` and the headers below. Add a *Google Sheets OAuth2* credential and paste the sheet URL into **Read Logged Grants** and **Append to Sheet**.\n4. **Gmail** – add a *Gmail OAuth2* credential and set your address in **Org Profile → digestEmail**.\n5. Run once manually, then activate.",
+        "width": 440,
+        "height": 460,
+        "color": 6
+      }
+    },
+    {
+      "id": "efcd89a3-6040-4a77-9054-4098553f89f0",
+      "name": "Customize",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        460,
+        -520
+      ],
+      "parameters": {
+        "content": "## ✏️ How to customize\n- **Org Profile** (Set node): edit `orgProfile`, `keyword`, `minScore`, `digestEmail`. This is the only node most people need to touch.\n- **Run Grants.gov Scraper**: change actor input — `statuses`, `agencies`, `eligibilities`, `postedWithinDays`, `maxItems`.\n- **Schedule**: default 07:00 daily (cron `0 7 * * *`).\n- **AI Score Grant**: tweak the prompt/rubric or the model (gpt-4o-mini is cheap and good enough).\n- Swap Gmail for Slack/Teams by replacing the last node.",
+        "width": 440,
+        "height": 460,
+        "color": 5
+      }
+    },
+    {
+      "id": "864d894f-8e40-4586-b0fc-558c58b564b0",
+      "name": "Sheet columns",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        920,
+        -520
+      ],
+      "parameters": {
+        "content": "## 📄 Google Sheet headers (tab `Grants`, row 1)\n`id | number | title | agency | status | openDate | closeDate | awardCeiling | awardFloor | estimatedTotalFunding | eligibleApplicants | categories | url | score | reason | loggedAt`\n\n`id` is the Grants.gov opportunity ID and is used for de-duplication — don't rename it.",
+        "width": 400,
+        "height": 460,
+        "color": 7
+      }
+    },
+    {
+      "id": "476a3cea-e58f-49ff-85b7-157c0fafb299",
+      "name": "Daily 7am",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        -400,
+        100
+      ],
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 7 * * *"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "7733b0f5-0a87-4b6f-9847-4567a7bb320b",
+      "name": "Org Profile",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -180,
+        100
+      ],
+      "parameters": {
+        "mode": "manual",
+        "includeOtherFields": false,
+        "assignments": {
+          "assignments": [
+            {
+              "id": "d76407a1-71c6-4503-a0ec-d27d3809d474",
+              "name": "orgProfile",
+              "type": "string",
+              "value": "We are a US 501(c)(3) nonprofit running after-school STEM and AI-literacy programs for low-income middle and high school students in California. Annual budget ~$1.2M. Interested in education, workforce development, broadband/digital equity and community grants. Not eligible for grants restricted to universities, tribes or state agencies."
+            },
+            {
+              "id": "c004ef05-d3db-4040-9b75-c604fe61ad79",
+              "name": "keyword",
+              "type": "string",
+              "value": "education"
+            },
+            {
+              "id": "78078ddd-c3fc-4e6b-a234-ec596526a3f1",
+              "name": "minScore",
+              "type": "number",
+              "value": 7
+            },
+            {
+              "id": "27a85e36-dd73-479a-bbcd-570836b96010",
+              "name": "digestEmail",
+              "type": "string",
+              "value": "you@example.com"
+            }
+          ]
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "1b4140b4-0d69-43fc-8521-3a2823984519",
+      "name": "Read Logged Grants",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        40,
+        100
+      ],
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "mode": "url",
+          "value": "https://docs.google.com/spreadsheets/d/YOUR_SHEET_ID/edit"
+        },
+        "sheetName": {
+          "__rl": true,
+          "mode": "name",
+          "value": "Grants"
+        },
+        "options": {}
+      },
+      "alwaysOutputData": true,
+      "executeOnce": true
+    },
+    {
+      "id": "65172acb-51e2-4fd3-8687-55c19e56b7df",
+      "name": "Run Grants.gov Scraper",
+      "type": "@apify/n8n-nodes-apify.apify",
+      "typeVersion": 1,
+      "position": [
+        260,
+        100
+      ],
+      "parameters": {
+        "resource": "Actors",
+        "operation": "Run actor and get dataset",
+        "actorSource": "store",
+        "actorId": {
+          "__rl": true,
+          "mode": "url",
+          "value": "https://console.apify.com/actors/imbcI522UkGM5yadr",
+          "cachedResultName": "Grants.gov Scraper (dedicated_crest/grants-gov-opportunity-finder)"
+        },
+        "customBody": "={\n  \"keyword\": \"{{ $('Org Profile').item.json.keyword }}\",\n  \"statuses\": [\"posted\", \"forecasted\"],\n  \"postedWithinDays\": 3,\n  \"sortBy\": \"newest\",\n  \"maxItems\": 100,\n  \"includeDetails\": true\n}",
+        "timeout": 300
+      },
+      "executeOnce": true
+    },
+    {
+      "id": "8b084971-4927-4a78-8574-b8bad3738cd5",
+      "name": "Keep Only New Grants",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        480,
+        100
+      ],
+      "parameters": {
+        "jsCode": "// Drop grants whose id is already in the sheet (and duplicates within this run)\nconst logged = new Set($('Read Logged Grants').all().map(i => String(i.json.id ?? '')).filter(Boolean));\nconst seen = new Set();\nconst out = [];\nfor (const item of $input.all()) {\n  const id = String(item.json.id ?? item.json.number ?? '');\n  if (!id || logged.has(id) || seen.has(id)) continue;\n  seen.add(id);\n  out.push({ json: item.json });\n}\nreturn out;"
+      }
+    },
+    {
+      "id": "360034f7-c7d9-4ba8-a2ee-43015d05a0fb",
+      "name": "AI Score Grant",
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.5,
+      "position": [
+        700,
+        100
+      ],
+      "parameters": {
+        "promptType": "define",
+        "hasOutputParser": true,
+        "text": "=ORGANIZATION PROFILE:\n{{ $('Org Profile').first().json.orgProfile }}\n\nGRANT:\nTitle: {{ $json.title }}\nAgency: {{ $json.agency }}\nStatus: {{ $json.status }}\nCloses: {{ $json.closeDate || 'n/a' }}\nAward ceiling: {{ $json.awardCeiling || 'n/a' }}\nEligible applicants: {{ [].concat($json.eligibleApplicants || []).join('; ') }}\nEligibility notes: {{ $json.eligibilityNotes || '' }}\nCategories: {{ [].concat($json.categories || []).join('; ') }}\nDescription: {{ ($json.description || '').slice(0, 3000) }}",
+        "messages": {
+          "messageValues": [
+            {
+              "message": "You are an experienced grant writer. Score how well the grant fits the organization from 0 (no fit / ineligible) to 10 (perfect fit, clearly eligible). Penalize heavily if the organization is not an eligible applicant type. Give a one-sentence reason (max 30 words)."
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "7e24f561-348e-4933-a4aa-de3bb6729ec0",
+      "name": "OpenAI Chat Model",
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        640,
+        320
+      ],
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4o-mini"
+        },
+        "options": {
+          "temperature": 0.2
+        }
+      }
+    },
+    {
+      "id": "3931079c-b0c3-47fc-b978-5419cea759cf",
+      "name": "Score Parser",
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.2,
+      "position": [
+        800,
+        320
+      ],
+      "parameters": {
+        "jsonSchemaExample": "{\n  \"score\": 8,\n  \"reason\": \"Nonprofits eligible; funds after-school STEM education for underserved youth.\"\n}"
+      }
+    },
+    {
+      "id": "fca45e37-0e7e-4a1b-a4e1-67127d408d4e",
+      "name": "Build Sheet Row",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1000,
+        100
+      ],
+      "parameters": {
+        "jsCode": "const grants = $('Keep Only New Grants').all();\nconst j = v => Array.isArray(v) ? v.join('; ') : (v ?? '');\nreturn $input.all().map((item, i) => {\n  const g = grants[i].json;\n  const o = item.json.output || {};\n  return { json: {\n    id: String(g.id), number: g.number, title: g.title, agency: g.agency, status: g.status,\n    openDate: g.openDate, closeDate: g.closeDate, awardCeiling: g.awardCeiling ?? '', awardFloor: g.awardFloor ?? '',\n    estimatedTotalFunding: g.estimatedTotalFunding ?? '', eligibleApplicants: j(g.eligibleApplicants),\n    categories: j(g.categories), url: g.url,\n    score: Math.max(0, Math.min(10, Number(o.score) || 0)), reason: o.reason || '',\n    loggedAt: $now.toISO(),\n  }};\n});"
+      }
+    },
+    {
+      "id": "de40869d-1ea2-498f-9a5e-e35840fe29b6",
+      "name": "Append to Sheet",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        1220,
+        100
+      ],
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "mode": "url",
+          "value": "https://docs.google.com/spreadsheets/d/YOUR_SHEET_ID/edit"
+        },
+        "sheetName": {
+          "__rl": true,
+          "mode": "name",
+          "value": "Grants"
+        },
+        "columns": {
+          "mappingMode": "autoMapInputData",
+          "value": {},
+          "matchingColumns": [],
+          "schema": []
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "8803fc2a-f32e-4546-b5b7-63f5e8ca488e",
+      "name": "Score >= Min",
+      "type": "n8n-nodes-base.filter",
+      "typeVersion": 2.2,
+      "position": [
+        1440,
+        100
+      ],
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "a5511e49-bb7c-4c73-a8b9-f084bedde498",
+              "leftValue": "={{ Number($json.score) }}",
+              "rightValue": "={{ $('Org Profile').first().json.minScore }}",
+              "operator": {
+                "type": "number",
+                "operation": "gte"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      }
+    },
+    {
+      "id": "b365ce13-8556-4670-8f50-f6c450ad5b0b",
+      "name": "Collect Matches",
+      "type": "n8n-nodes-base.aggregate",
+      "typeVersion": 1,
+      "position": [
+        1660,
+        100
+      ],
+      "parameters": {
+        "aggregate": "aggregateAllItemData",
+        "destinationFieldName": "matches",
+        "options": {}
+      }
+    },
+    {
+      "id": "e05cc86c-3190-414b-88ab-cf25bd7bd6a3",
+      "name": "Any Matches?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1880,
+        100
+      ],
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "de255c96-9b5a-48c3-b183-491bdb6ecaff",
+              "leftValue": "={{ ($json.matches || []).length }}",
+              "rightValue": 0,
+              "operator": {
+                "type": "number",
+                "operation": "gt"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "b96b9fcf-ffc9-480b-a9e0-ada0329868e5",
+      "name": "Send Digest",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        2100,
+        80
+      ],
+      "parameters": {
+        "sendTo": "={{ $('Org Profile').first().json.digestEmail }}",
+        "subject": "=🎯 {{ $json.matches.length }} high-fit grant{{ $json.matches.length === 1 ? '' : 's' }} from Grants.gov – {{ $now.toFormat('LLL d') }}",
+        "emailType": "html",
+        "message": "=<h2 style=\"font-family:Arial\">Today's top grant matches</h2>\n{{ $json.matches.sort((a,b)=>b.score-a.score).map(m => `<div style=\"font-family:Arial;border-left:4px solid #2e7d32;padding:8px 12px;margin:12px 0\"><b>${m.score}/10</b> — <a href=\"${m.url}\">${m.title}</a><br><span style=\"color:#555\">${m.agency} · #${m.number} · closes ${m.closeDate || 'n/a'}${m.awardCeiling ? ' · up to $' + Number(m.awardCeiling).toLocaleString() : ''}</span><br><i>${m.reason}</i></div>`).join('') }}\n<p style=\"font-family:Arial;color:#888;font-size:12px\">All new grants (with scores) are logged in your Google Sheet.</p>",
+        "options": {
+          "appendAttribution": false
+        }
+      }
+    },
+    {
+      "id": "fb94cdfd-ef20-4c38-b8a3-1a8ce7de4ad8",
+      "name": "No Matches Today",
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [
+        2100,
+        280
+      ],
+      "parameters": {}
+    }
+  ],
+  "connections": {
+    "Daily 7am": {
+      "main": [
+        [
+          {
+            "node": "Org Profile",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Org Profile": {
+      "main": [
+        [
+          {
+            "node": "Read Logged Grants",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read Logged Grants": {
+      "main": [
+        [
+          {
+            "node": "Run Grants.gov Scraper",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Run Grants.gov Scraper": {
+      "main": [
+        [
+          {
+            "node": "Keep Only New Grants",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Keep Only New Grants": {
+      "main": [
+        [
+          {
+            "node": "AI Score Grant",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Score Grant": {
+      "main": [
+        [
+          {
+            "node": "Build Sheet Row",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Sheet Row": {
+      "main": [
+        [
+          {
+            "node": "Append to Sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Append to Sheet": {
+      "main": [
+        [
+          {
+            "node": "Score >= Min",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Score >= Min": {
+      "main": [
+        [
+          {
+            "node": "Collect Matches",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Collect Matches": {
+      "main": [
+        [
+          {
+            "node": "Any Matches?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Score Grant",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Score Parser": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "AI Score Grant",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Any Matches?": {
+      "main": [
+        [
+          {
+            "node": "Send Digest",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "No Matches Today",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {},
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "meta": {
+    "templateCredsSetupCompleted": false
+  },
+  "tags": []
+}

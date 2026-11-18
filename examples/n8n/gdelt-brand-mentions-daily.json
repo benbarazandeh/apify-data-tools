@@ -1,0 +1,687 @@
+{
+  "name": "Monitor GDELT brand mentions daily, dedupe in Sheets, and email a digest",
+  "nodes": [
+    {
+      "id": "d274fc5e-bf21-4110-a9b5-6bb8e3981320",
+      "name": "Overview",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        48,
+        40
+      ],
+      "parameters": {
+        "content": "### How it works\nThis workflow is for PR, comms, and brand teams who need a daily list of news mentions they can review \u2014 headlines with outlet, country, tone, and a link \u2014 not a raw GDELT dump. Each morning it reads article URLs already in your Google Sheet, then runs the GDELT News Monitor Apify actor for the keywords, languages, countries, and time span you set. It can label each article negative, neutral, or positive, optionally keep only a chosen tone, skips any URL already logged, normalizes the fields, and appends only the new rows. You get a Gmail digest with the count and an HTML table. If none qualify, you get a short all-clear. If the actor call fails, or another node errors, you get an email instead of a silent failure.\n\n### Setup\n1. Create an Apify account. The free plan includes $5 of monthly platform credit. Create a Header Auth credential with name Authorization and value Bearer YOUR_APIFY_TOKEN.\n2. Create a Google Sheet with a tab named Mentions and the headers in the Sheet headers note. Connect Google Sheets OAuth2 and paste the sheet URL into both Sheets nodes.\n3. Connect Gmail OAuth2. Set digestEmail in Set search settings, and use the same address on Email workflow error.\n4. In workflow settings, set this workflow as its own Error Workflow.\n5. Replace the sample keywords with your brand or topic, run once by hand, then activate. Each saved article costs $0.002. Keep maxItems modest so the actor finishes within the 5-minute sync limit. Sentiment labels make the run about three times longer.\n\n### Customization\nEdit keywords, languages, countries, excludeKeywords, timespan, maxItems, sentiment, and toneFilter in Set search settings. Set toneFilter to negative for adverse-media reviews. Change the 7:00 schedule to match your timezone.\n",
+        "width": 900,
+        "height": 620
+      }
+    },
+    {
+      "id": "172d3406-c7b0-4a17-91bb-fc7c0b3bda9e",
+      "name": "Configure the daily search",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        48,
+        700
+      ],
+      "parameters": {
+        "content": "## Configure the daily search\nEdit keywords, languages, countries, timespan, max items, toneFilter, and digestEmail here. These values are the only ones most users need to change.",
+        "width": 620,
+        "height": 280,
+        "color": 7
+      }
+    },
+    {
+      "id": "d2b2f48b-0ddf-489c-a922-bdd28e2964a0",
+      "name": "Fetch new articles",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        650,
+        700
+      ],
+      "parameters": {
+        "content": "## Fetch new articles\nReads existing article URLs first so a sheet error does not spend Apify credit, then runs the actor. A failed actor call emails you on the lower branch.",
+        "width": 620,
+        "height": 580,
+        "color": 7
+      }
+    },
+    {
+      "id": "716ae069-2574-4873-8c0e-7174ccdd416e",
+      "name": "Filter and normalize mentions",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        1250,
+        700
+      ],
+      "parameters": {
+        "content": "## Filter and normalize mentions\nOptionally keeps a chosen tone (for example only negative), skips URLs already in the sheet, and flattens fields for Sheets and the digest.",
+        "width": 900,
+        "height": 280,
+        "color": 7
+      }
+    },
+    {
+      "id": "5d136b52-2468-4100-8d71-59fb405b1c8e",
+      "name": "Log and email the digest",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        2150,
+        620
+      ],
+      "parameters": {
+        "content": "## Log and email the digest\nAppends only new mentions. Emails an HTML table when there are new rows, or a short all-clear when the run finds none.",
+        "width": 1220,
+        "height": 680,
+        "color": 7
+      }
+    },
+    {
+      "id": "ae274c22-5bc7-470b-955c-e02411fd1932",
+      "name": "Sheet headers",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        3080,
+        1140
+      ],
+      "parameters": {
+        "content": "## Sheet headers\nOn tab `Mentions`, row 1: `url, title, domain, sourceCountry, language, seenAt, sentiment, toneRange, query, loggedAt`. Do not rename `url`.",
+        "width": 360,
+        "height": 300,
+        "color": 7
+      }
+    },
+    {
+      "id": "9f8b0982-9c3b-4760-b1ba-dd188bf0449e",
+      "name": "Handle unexpected errors",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        48,
+        1420
+      ],
+      "parameters": {
+        "content": "## Handle unexpected errors\nAfter import, set this workflow as its own Error Workflow so any unhandled failure (sheet auth, Gmail, and so on) emails you.",
+        "width": 620,
+        "height": 280,
+        "color": 7
+      }
+    },
+    {
+      "id": "4beca99f-0f9a-4fe2-ab8b-8bf2a9bb8829",
+      "name": "Set your email before activating",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        2780,
+        500
+      ],
+      "parameters": {
+        "content": "## Set your email before activating\nReplace you@example.com in Set search settings (`digestEmail`) and in the To field of Email workflow error. Otherwise test emails go to the placeholder.",
+        "width": 360,
+        "height": 150,
+        "color": 3
+      }
+    },
+    {
+      "id": "f24a45e7-bb1d-4ab5-b918-317dddec81a3",
+      "name": "Schedule daily at 7am",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        80,
+        780
+      ],
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 7 * * *"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "54f66fc9-0f2b-4a7d-b5be-458a72af1a7e",
+      "name": "Set search settings",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        380,
+        780
+      ],
+      "notes": "keywords: comma-separated terms or phrases, for example artificial intelligence or Acme Corp. languages: comma-separated, for example english. countries: optional outlet countries, for example US,UK. excludeKeywords: optional terms to drop. timespan: how far back, for example 24h or 7d. maxItems: daily result and cost cap ($0.002 each). sentiment: true labels each article negative, neutral, or positive (about 3\u00d7 slower). toneFilter: any, negative, positive, or non-neutral (applied after the actor; needs sentiment true). digestEmail: where the daily digest and actor-failure email are sent.",
+      "parameters": {
+        "mode": "manual",
+        "options": {},
+        "assignments": {
+          "assignments": [
+            {
+              "id": "b74663f7-cff7-4540-be1f-004376699f2e",
+              "name": "keywords",
+              "type": "string",
+              "value": "artificial intelligence"
+            },
+            {
+              "id": "74dcdb04-e274-45f1-9ea6-3100e3b2f8d2",
+              "name": "languages",
+              "type": "string",
+              "value": "english"
+            },
+            {
+              "id": "10399266-4354-4566-bd73-17e77c54257f",
+              "name": "countries",
+              "type": "string",
+              "value": ""
+            },
+            {
+              "id": "91c6b47d-a08c-4f1d-8ebf-78bb195accd6",
+              "name": "excludeKeywords",
+              "type": "string",
+              "value": ""
+            },
+            {
+              "id": "77358147-35b5-4233-ad5b-cd83f599575a",
+              "name": "timespan",
+              "type": "string",
+              "value": "24h"
+            },
+            {
+              "id": "25b4b820-9ea9-416d-ab22-8b4a6736c62d",
+              "name": "maxItems",
+              "type": "number",
+              "value": 15
+            },
+            {
+              "id": "fcce1a71-bbe5-4954-8504-014a50ad8276",
+              "name": "sentiment",
+              "type": "boolean",
+              "value": true
+            },
+            {
+              "id": "353798ab-7445-4463-9bfa-e0bf95c5b92d",
+              "name": "toneFilter",
+              "type": "string",
+              "value": "any"
+            },
+            {
+              "id": "0ace5b38-e066-4e3c-9f47-ec84cb9d81e1",
+              "name": "digestEmail",
+              "type": "string",
+              "value": "you@example.com"
+            }
+          ]
+        },
+        "includeOtherFields": false
+      }
+    },
+    {
+      "id": "e15c6723-9e69-4d5d-be92-13e68a3845b7",
+      "name": "Get existing article URLs",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        680,
+        780
+      ],
+      "executeOnce": true,
+      "alwaysOutputData": true,
+      "parameters": {
+        "options": {},
+        "sheetName": {
+          "__rl": true,
+          "mode": "name",
+          "value": "Mentions"
+        },
+        "documentId": {
+          "__rl": true,
+          "mode": "url",
+          "value": "https://docs.google.com/spreadsheets/d/YOUR_SHEET_ID/edit"
+        }
+      },
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "id": "b0cd6aeb-46ea-4df1-8608-b7821c99fae2",
+      "name": "Run GDELT news search",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        980,
+        780
+      ],
+      "executeOnce": true,
+      "alwaysOutputData": true,
+      "onError": "continueErrorOutput",
+      "parameters": {
+        "url": "https://api.apify.com/v2/acts/dedicated_crest~gdelt-news-monitor/run-sync-get-dataset-items?timeout=300&clean=true",
+        "method": "POST",
+        "options": {
+          "timeout": 330000
+        },
+        "jsonBody": "={{ JSON.stringify((() => {\n  const s = $('Set search settings').first().json;\n  const list = (v) => String(v || '').split(',').map((x) => x.trim()).filter(Boolean);\n  const flag = (v) => v !== false && v !== 'false' && v !== 0 && v !== '0' && v !== '';\n  const body = {\n    keywords: list(s.keywords),\n    timespan: s.timespan || '24h',\n    sentiment: flag(s.sentiment),\n    dedupeTitles: true,\n    fetchArticleMeta: false,\n    maxItems: Number(s.maxItems) || 15,\n  };\n  const languages = list(s.languages);\n  const countries = list(s.countries);\n  const excludeKeywords = list(s.excludeKeywords);\n  if (languages.length) body.languages = languages;\n  if (countries.length) body.countries = countries;\n  if (excludeKeywords.length) body.excludeKeywords = excludeKeywords;\n  return body;\n})()) }}",
+        "sendBody": true,
+        "specifyBody": "json",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth"
+      },
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "",
+          "name": "Apify API token (Header Auth)"
+        }
+      }
+    },
+    {
+      "id": "f3b46930-130f-42b1-b101-02ce2d242c31",
+      "name": "Notify on actor failure",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        980,
+        1120
+      ],
+      "parameters": {
+        "sendTo": "={{ $('Set search settings').first().json.digestEmail }}",
+        "message": "= The Apify GDELT actor did not return a dataset. No rows were added to the sheet. Error: {{ $json.error?.message || $json.message || 'Unknown error' }} {{ JSON.stringify($json.error || $json, null, 2) }} Common causes: an invalid Apify token, a run that exceeded the 5-minute sync limit (lower maxItems, or turn sentiment off), or GDELT being busy. Check the latest run in your Apify console. ",
+        "options": {
+          "appendAttribution": false
+        },
+        "subject": "=GDELT news search failed \u2014 {{ $now.toFormat('LLL d') }}",
+        "emailType": "html"
+      },
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "id": "20a4412e-d537-4b45-a0e1-f5243eac6bea",
+      "name": "Keep matching articles",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1280,
+        780
+      ],
+      "alwaysOutputData": true,
+      "parameters": {
+        "jsCode": "const s = $('Set search settings').first().json;\nconst flag = (v) => v !== false && v !== 'false' && v !== 0 && v !== '0' && v !== '';\nconst toneFilter = String(s.toneFilter || 'any').trim().toLowerCase();\n\nconst out = [];\nfor (const item of $input.all()) {\n  const a = item.json || {};\n  // HTTP error payloads or empty actor responses have no article URL\n  if (!a.url && !a.title) continue;\n\n  if (toneFilter && toneFilter !== 'any') {\n    const sent = String(a.sentiment || '').trim().toLowerCase();\n    if (toneFilter === 'negative' && sent !== 'negative') continue;\n    if (toneFilter === 'positive' && sent !== 'positive') continue;\n    if (toneFilter === 'non-neutral' && sent !== 'negative' && sent !== 'positive') continue;\n  }\n\n  out.push({ json: a });\n}\nreturn out;\n"
+      }
+    },
+    {
+      "id": "38a42d68-7668-4efe-bf7b-c5f7f955a738",
+      "name": "Remove already logged URLs",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1580,
+        780
+      ],
+      "alwaysOutputData": true,
+      "parameters": {
+        "jsCode": "const logged = new Set(\n  $('Get existing article URLs').all()\n    .map((i) => String(i.json.url ?? '').trim())\n    .filter(Boolean)\n);\nconst seen = new Set();\nconst out = [];\nfor (const item of $input.all()) {\n  const a = item.json || {};\n  const url = String(a.url ?? '').trim();\n  if (!url || logged.has(url) || seen.has(url)) continue;\n  seen.add(url);\n  out.push({ json: a });\n}\nreturn out;\n"
+      }
+    },
+    {
+      "id": "c548a2ea-6ffc-4461-9ab5-21d64ee26ceb",
+      "name": "Normalize article fields",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1880,
+        780
+      ],
+      "alwaysOutputData": true,
+      "parameters": {
+        "jsCode": "const join = (v) => Array.isArray(v) ? v.filter(Boolean).join('; ') : (v ?? '');\nconst str = (v) => (v === null || v === undefined) ? '' : String(v);\n\nreturn $input.all()\n  .map((item) => item.json || {})\n  .filter((a) => a.url != null && String(a.url).trim() !== '')\n  .map((a) => ({\n    json: {\n      url: str(a.url).trim(),\n      title: str(a.title),\n      domain: str(a.domain),\n      sourceCountry: str(a.sourceCountry),\n      language: str(a.language),\n      seenAt: str(a.seenAt),\n      sentiment: str(a.sentiment),\n      toneRange: str(a.toneRange),\n      query: str(a.query),\n      loggedAt: $now.toISO(),\n    }\n  }));\n"
+      }
+    },
+    {
+      "id": "8b7428f4-9e62-4327-b090-b4bc810c8010",
+      "name": "Collect new mentions",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2180,
+        780
+      ],
+      "alwaysOutputData": true,
+      "parameters": {
+        "jsCode": "const mentions = $input.all()\n  .map((i) => i.json)\n  .filter((j) => j && j.url != null && String(j.url).trim() !== '');\n\nconst esc = (v) => String(v ?? '')\n  .replace(/&/g, '&amp;')\n  .replace(/</g, '&lt;')\n  .replace(/>/g, '&gt;')\n  .replace(/\"/g, '&quot;');\n\nconst rows = mentions.slice(0, 50).map((a) => {\n  const title = esc(a.title) || '(no title)';\n  const href = esc(a.url);\n  const linked = a.url ? `<a href=\"${href}\">${title}</a>` : title;\n  return `<tr>\n  <td>${esc(a.seenAt)}</td>\n  <td>${linked}</td>\n  <td>${esc(a.domain)}</td>\n  <td>${esc(a.sourceCountry)}</td>\n  <td>${esc(a.sentiment)}</td>\n</tr>`;\n}).join('');\n\nconst count = mentions.length;\nconst digestHtml = `<p>Today's run found <strong>${count}</strong> new mention${count === 1 ? '' : 's'} that passed your filters and were not already in your sheet.</p>\n<table border=\"1\" cellpadding=\"6\" cellspacing=\"0\">\n  <thead>\n    <tr>\n      <th>Seen (UTC)</th>\n      <th>Title</th>\n      <th>Outlet</th>\n      <th>Country</th>\n      <th>Tone</th>\n    </tr>\n  </thead>\n  <tbody>\n    ${rows}\n  </tbody>\n</table>\n<p>Showing up to 50 rows. All new mentions were appended to your Google Sheet.</p>`;\n\nreturn [{ json: { mentions, count, digestHtml } }];\n"
+      }
+    },
+    {
+      "id": "216eec36-d65a-4442-8c1d-1ae8ad69d6b0",
+      "name": "Were any mentions new?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        2480,
+        780
+      ],
+      "parameters": {
+        "options": {},
+        "conditions": {
+          "options": {
+            "version": 2,
+            "leftValue": "",
+            "caseSensitive": true,
+            "typeValidation": "strict"
+          },
+          "combinator": "and",
+          "conditions": [
+            {
+              "id": "bea0451f-458c-4794-adb0-9e576beedc72",
+              "operator": {
+                "type": "number",
+                "operation": "gt"
+              },
+              "leftValue": "={{ Number($json.count) }}",
+              "rightValue": 0
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "09791729-f680-44b7-a6d3-9f4ca1d6cd99",
+      "name": "Email daily summary",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        2780,
+        680
+      ],
+      "parameters": {
+        "sendTo": "={{ $('Set search settings').first().json.digestEmail }}",
+        "message": "={{ $json.digestHtml }}",
+        "options": {
+          "appendAttribution": false
+        },
+        "subject": "={{ $json.count }} new GDELT mention{{ $json.count === 1 ? '' : 's' }} \u2014 {{ $now.toFormat('LLL d') }}",
+        "emailType": "html"
+      },
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "id": "2eb45946-d59d-450e-95a2-6e256b98e213",
+      "name": "Split out new mentions",
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [
+        2780,
+        880
+      ],
+      "parameters": {
+        "options": {},
+        "fieldToSplitOut": "mentions"
+      }
+    },
+    {
+      "id": "8858b58e-746c-416f-8145-f5949ea1326c",
+      "name": "Append new mentions to sheet",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        3080,
+        880
+      ],
+      "parameters": {
+        "columns": {
+          "value": {},
+          "schema": [],
+          "mappingMode": "autoMapInputData",
+          "matchingColumns": []
+        },
+        "options": {},
+        "operation": "append",
+        "sheetName": {
+          "__rl": true,
+          "mode": "name",
+          "value": "Mentions"
+        },
+        "documentId": {
+          "__rl": true,
+          "mode": "url",
+          "value": "https://docs.google.com/spreadsheets/d/YOUR_SHEET_ID/edit"
+        }
+      },
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "id": "aac513c2-1dad-434e-af13-71563770bc51",
+      "name": "Email no-new-mentions notice",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        2780,
+        1120
+      ],
+      "parameters": {
+        "sendTo": "={{ $('Set search settings').first().json.digestEmail }}",
+        "message": "= The daily GDELT search finished and found no new mentions that passed your filters and were not already in the sheet. Nothing was appended. This all-clear means the workflow ran. If you expected coverage, try a larger timespan, fewer language or country limits, or set toneFilter to any. ",
+        "options": {
+          "appendAttribution": false
+        },
+        "subject": "=No new GDELT mentions today \u2014 {{ $now.toFormat('LLL d') }}",
+        "emailType": "html"
+      },
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "id": "f04ac09f-0f87-4a38-8dc6-ddd287a2dfe5",
+      "name": "When the workflow errors",
+      "type": "n8n-nodes-base.errorTrigger",
+      "typeVersion": 1,
+      "position": [
+        80,
+        1500
+      ],
+      "parameters": {}
+    },
+    {
+      "id": "186915ea-e8ca-4386-8c9c-1ea94f981472",
+      "name": "Email workflow error",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        380,
+        1500
+      ],
+      "parameters": {
+        "sendTo": "you@example.com",
+        "message": "= The {{ $json.workflow?.name || 'GDELT mentions' }} workflow failed. Last node: {{ $json.execution?.lastNodeExecuted || $json.lastNodeExecuted || 'unknown' }} Error: {{ $json.execution?.error?.message || $json.error?.message || $json.message || 'Unknown error' }} Open the failed execution Set this workflow as its own Error Workflow in workflow settings, and replace the To address on this node with your email. ",
+        "options": {
+          "appendAttribution": false
+        },
+        "subject": "=GDELT mentions workflow failed \u2014 {{ $now.toFormat('LLL d') }}",
+        "emailType": "html"
+      },
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "",
+          "name": "Gmail account"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Schedule daily at 7am": {
+      "main": [
+        [
+          {
+            "node": "Set search settings",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Set search settings": {
+      "main": [
+        [
+          {
+            "node": "Get existing article URLs",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get existing article URLs": {
+      "main": [
+        [
+          {
+            "node": "Run GDELT news search",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Run GDELT news search": {
+      "main": [
+        [
+          {
+            "node": "Keep matching articles",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Notify on actor failure",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Keep matching articles": {
+      "main": [
+        [
+          {
+            "node": "Remove already logged URLs",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Remove already logged URLs": {
+      "main": [
+        [
+          {
+            "node": "Normalize article fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Normalize article fields": {
+      "main": [
+        [
+          {
+            "node": "Collect new mentions",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Collect new mentions": {
+      "main": [
+        [
+          {
+            "node": "Were any mentions new?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Were any mentions new?": {
+      "main": [
+        [
+          {
+            "node": "Email daily summary",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Split out new mentions",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Email no-new-mentions notice",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split out new mentions": {
+      "main": [
+        [
+          {
+            "node": "Append new mentions to sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "When the workflow errors": {
+      "main": [
+        [
+          {
+            "node": "Email workflow error",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {},
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "meta": {
+    "templateCredsSetupCompleted": false
+  }
+}

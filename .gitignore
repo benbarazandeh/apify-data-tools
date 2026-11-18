@@ -1,0 +1,22 @@
+# Secrets and local env — never commit tokens
+.env
+.env.*
+*.pem
+*.key
+*.token
+.secrets/
+secrets/
+apify_token
+**/apify_token
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+.Python
+
+# OS / editor
+.DS_Store
+.idea/
+.vscode/
