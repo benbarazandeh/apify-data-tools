@@ -1,6 +1,6 @@
 # Apify data tools
 
-Examples, n8n workflows, and MCP setup for the public [Apify](https://apify.com) Actors by [dedicated_crest](https://apify.com/dedicated_crest). Titles and one-line descriptions below are from the Apify Store as of 18 Nov 2026.
+Examples, n8n workflows, and MCP setup for the public [Apify](https://apify.com) Actors by [dedicated_crest](https://apify.com/dedicated_crest). Titles and one-line descriptions below are from the Apify Store as of 20 Nov 2026.
 
 Runs are billed to your own Apify account at each Actor's Store price. A new account can start on the Free plan ($5 of monthly platform credit, no credit card). Lower `maxItems` to keep tests cheap.
 
@@ -20,9 +20,11 @@ Runs are billed to your own Apify account at each Actor's Store price. A new acc
 | [Local Business Leads – OpenStreetMap, Emails & Phones](https://apify.com/dedicated_crest/osm-local-business-leads) | Get local business leads by category & city: name, address, phone, website, hours, coordinates + emails from business websites. OpenStreetMap data, $3/1,000. | [`examples/osm_local_business_leads.py`](examples/osm_local_business_leads.py) | [Open with example input](https://console.apify.com/actors/CaXtHyEnLdr2XQOD3/input) |
 | [Medium Scraper: Articles by Tag, Author and Publication](https://apify.com/dedicated_crest/medium-articles-scraper) | Scrape Medium articles by tag, author, publication or article URL using public RSS feeds: title, author, dates, tags, summary or full text, claps, responses, and reading time. | [`examples/medium_articles_scraper.py`](examples/medium_articles_scraper.py) | [Open with example input](https://console.apify.com/actors/i2aJxAc59YbSECM47/input) |
 | [NPI Registry Scraper – Doctor & Dentist Leads (No 1,200 Cap)](https://apify.com/dedicated_crest/npi-healthcare-provider-leads) | Official NPPES NPI Registry scraper: US doctors, dentists & clinics, past the 1,200 cap. Specialty, address, phone, fax, owner. State, city, ZIP. $1/1,000. | [`examples/npi_healthcare_provider_leads.py`](examples/npi_healthcare_provider_leads.py) | [Open with example input](https://console.apify.com/actors/AeZTbhypXKAXC4S18/input) |
+| [Podcast Scraper – Apple Podcasts Search & Host Email Leads](https://apify.com/dedicated_crest/podcast-leads-finder) | Find podcasts on Apple Podcasts by topic or category and get host contact email, website, episode count, last episode date and posting frequency from each show's RSS feed. For guest booking, PR and sponsorship outreach. $3/1,000. | [`examples/podcast_leads_finder.py`](examples/podcast_leads_finder.py) | [Open with example input](https://console.apify.com/actors/MBDVyd5BEASjOJGxv/input) |
 | [Quora Scraper: Questions, Answers and Profiles (No Login)](https://apify.com/dedicated_crest/quora-questions-answers-scraper) | Scrape public Quora questions, answers with views and upvotes, and user profiles without login. $1.90 per 1,000 results, proxy included. | [`examples/quora_questions_answers_scraper.py`](examples/quora_questions_answers_scraper.py) | [Open with example input](https://console.apify.com/actors/4nwccBhvYJ1z8DIGC/input) |
 | [SEC EDGAR Scraper – Form D Filings & Funding Leads](https://apify.com/dedicated_crest/sec-edgar-funding-leads) | SEC EDGAR scraper: Form D filings with amount raised, industry, phone and executives, plus EDGAR full-text search (8-K, 10-K, S-1, Form 4). Official SEC data, no API key. | [`examples/sec_edgar_funding_leads.py`](examples/sec_edgar_funding_leads.py) | [Open with example input](https://console.apify.com/actors/hkA76yVNeOzRkV2qH/input) |
 | [Substack Scraper – Newsletter Posts, Search & Publication Info](https://apify.com/dedicated_crest/substack-posts-newsletter-scraper) | Scrape Substack posts by newsletter URL or keyword: title, date, author, likes, comments, restacks, free/paid flag and publication info. No login. | [`examples/substack_posts_newsletter_scraper.py`](examples/substack_posts_newsletter_scraper.py) | [Open with example input](https://console.apify.com/actors/QdGppPjXeQ4APuMFP/input) |
+| [TED Scraper – EU Public Tenders & Contract Awards Finder](https://apify.com/dedicated_crest/ted-eu-tenders-finder) | Search EU public tenders on TED (Tenders Electronic Daily) by keyword, CPV code and country via the official TED API. Deadlines, buyer, estimated value, documents link, plus contract award winners. Daily bid alerts. $2/1,000. | [`examples/ted_eu_tenders_finder.py`](examples/ted_eu_tenders_finder.py) | [Open with example input](https://console.apify.com/actors/l56kNRFWiknXGdHEi/input) |
 | [USAspending Scraper – Federal Contracts & Grant Awards](https://apify.com/dedicated_crest/usaspending-federal-awards) | USAspending scraper for federal contracts and grant awards: recipient, UEI, NAICS, agency, set-aside, amount. Official USAspending.gov API, no key. $2 per 1,000 awards. | [`examples/usaspending_federal_awards.py`](examples/usaspending_federal_awards.py) | [Open with example input](https://console.apify.com/actors/1gBWYbXAbdVPHOBz7/input) |
 | [Website Contact Scraper – Emails, Phones & Socials](https://apify.com/dedicated_crest/website-contact-enrichment) | Extract emails, phones, LinkedIn, Facebook, Instagram & X profiles and contact pages from lists of company websites. robots.txt-friendly, $2 per 1,000 websites. | [`examples/website_contact_enrichment.py`](examples/website_contact_enrichment.py) | [Open with example input](https://console.apify.com/actors/qPFqWrhmM6FRkPYvd/input) |
 
@@ -41,11 +43,13 @@ For example:
 - Grants: `https://mcp.apify.com?tools=dedicated_crest/grants-gov-opportunity-finder`
 - GDELT: `https://mcp.apify.com?tools=dedicated_crest/gdelt-news-monitor`
 - FMCSA: `https://mcp.apify.com?tools=dedicated_crest/fmcsa-trucking-carrier-leads`
+- Podcast: `https://mcp.apify.com?tools=dedicated_crest/podcast-leads-finder`
+- TED: `https://mcp.apify.com?tools=dedicated_crest/ted-eu-tenders-finder`
 
-To load all three at once:
+To load all five at once:
 
 ```
-https://mcp.apify.com?tools=dedicated_crest/grants-gov-opportunity-finder,dedicated_crest/gdelt-news-monitor,dedicated_crest/fmcsa-trucking-carrier-leads
+https://mcp.apify.com?tools=dedicated_crest/grants-gov-opportunity-finder,dedicated_crest/gdelt-news-monitor,dedicated_crest/fmcsa-trucking-carrier-leads,dedicated_crest/podcast-leads-finder,dedicated_crest/ted-eu-tenders-finder
 ```
 
 Configurator and docs: [mcp.apify.com](https://mcp.apify.com) and [docs.apify.com/mcp](https://docs.apify.com/mcp).
@@ -58,9 +62,13 @@ Configurator and docs: [mcp.apify.com](https://mcp.apify.com) and [docs.apify.co
 
 **FMCSA.** List active motor carriers in Dallas, TX that have a phone number, and include USDOT, MC number, fleet size, safety rating, and authority status.
 
+**Podcast.** Find active B2B marketing podcasts with a host email and a website, and show the episode count and how recently each show published.
+
+**TED.** Find open EU software tenders in Germany and France published in the last 7 days, and show the buyer, deadline, and estimated value for each one.
+
 ### Official MCP Registry metadata
 
-`server.json` files for the three tools above live in [`mcp/`](mcp/). They describe the hosted Apify MCP endpoints so the official MCP Registry (and directories that copy it, including Glama) can list each tool under `io.github.benbarazandeh/...`. See [`mcp/README.md`](mcp/README.md) for the publish steps.
+`server.json` files for the five tools above live in [`mcp/`](mcp/). They describe the hosted Apify MCP endpoints so the official MCP Registry (and directories that copy it, including Glama) can list each tool under `io.github.benbarazandeh/...`. See [`mcp/README.md`](mcp/README.md) for the publish steps.
 
 ## n8n workflows
 

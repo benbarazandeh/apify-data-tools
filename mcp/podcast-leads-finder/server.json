@@ -1,0 +1,26 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
+  "name": "io.github.benbarazandeh/podcast-leads-finder",
+  "title": "Podcast Leads Finder",
+  "description": "Find Apple Podcasts by topic and get each host's contact email, website, and posting frequency.",
+  "repository": {
+    "url": "https://github.com/benbarazandeh/apify-data-tools",
+    "source": "github"
+  },
+  "websiteUrl": "https://apify.com/dedicated_crest/podcast-leads-finder",
+  "version": "1.0.0",
+  "remotes": [
+    {
+      "type": "streamable-http",
+      "url": "https://mcp.apify.com/?tools=dedicated_crest/podcast-leads-finder",
+      "headers": [
+        {
+          "name": "Authorization",
+          "description": "Bearer followed by your Apify API token. Not needed if your client signs in with OAuth.",
+          "isRequired": false,
+          "isSecret": true
+        }
+      ]
+    }
+  ]
+}

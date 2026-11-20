@@ -1,0 +1,26 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
+  "name": "io.github.benbarazandeh/ted-eu-tenders-finder",
+  "title": "TED EU Tenders Finder",
+  "description": "Search open EU public tenders on TED by keyword, CPV, and country, plus award winners.",
+  "repository": {
+    "url": "https://github.com/benbarazandeh/apify-data-tools",
+    "source": "github"
+  },
+  "websiteUrl": "https://apify.com/dedicated_crest/ted-eu-tenders-finder",
+  "version": "1.0.0",
+  "remotes": [
+    {
+      "type": "streamable-http",
+      "url": "https://mcp.apify.com/?tools=dedicated_crest/ted-eu-tenders-finder",
+      "headers": [
+        {
+          "name": "Authorization",
+          "description": "Bearer followed by your Apify API token. Not needed if your client signs in with OAuth.",
+          "isRequired": false,
+          "isSecret": true
+        }
+      ]
+    }
+  ]
+}

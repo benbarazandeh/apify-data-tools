@@ -1,6 +1,6 @@
 # Official MCP Registry metadata
 
-These `server.json` files describe the hosted Apify MCP endpoints for three dedicated_crest tools, so they can be published to the [official MCP Registry](https://modelcontextprotocol.io/registry/quickstart) under the `io.github.benbarazandeh/` namespace. Directories that copy the registry (including [Glama](https://glama.ai/mcp/faq)) can then list each tool.
+These `server.json` files describe the hosted Apify MCP endpoints for five dedicated_crest tools, so they can be published to the [official MCP Registry](https://modelcontextprotocol.io/registry/quickstart) under the `io.github.benbarazandeh/` namespace. Directories that copy the registry (including [Glama](https://glama.ai/mcp/faq)) can then list each tool.
 
 This repo is not a standalone MCP server. The remote URL is Apify's hosted server, scoped to one Actor:
 
@@ -15,6 +15,8 @@ On first use, sign in to Apify with OAuth, or pass an Apify API token as `Author
 | Grants.gov Opportunity Finder | [dedicated_crest/grants-gov-opportunity-finder](https://apify.com/dedicated_crest/grants-gov-opportunity-finder) | [`grants-gov-opportunity-finder/server.json`](grants-gov-opportunity-finder/server.json) |
 | GDELT News Monitor | [dedicated_crest/gdelt-news-monitor](https://apify.com/dedicated_crest/gdelt-news-monitor) | [`gdelt-news-monitor/server.json`](gdelt-news-monitor/server.json) |
 | FMCSA Trucking Carrier Leads | [dedicated_crest/fmcsa-trucking-carrier-leads](https://apify.com/dedicated_crest/fmcsa-trucking-carrier-leads) | [`fmcsa-trucking-carrier-leads/server.json`](fmcsa-trucking-carrier-leads/server.json) |
+| Podcast Leads Finder | [dedicated_crest/podcast-leads-finder](https://apify.com/dedicated_crest/podcast-leads-finder) | [`podcast-leads-finder/server.json`](podcast-leads-finder/server.json) |
+| TED EU Tenders Finder | [dedicated_crest/ted-eu-tenders-finder](https://apify.com/dedicated_crest/ted-eu-tenders-finder) | [`ted-eu-tenders-finder/server.json`](ted-eu-tenders-finder/server.json) |
 
 The generic Apify MCP server is already in the registry as `com.apify/apify-mcp-server`. Do not publish a second generic listing.
 
