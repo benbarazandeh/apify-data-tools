@@ -1,6 +1,6 @@
 # Official MCP Registry metadata
 
-These `server.json` files describe the hosted Apify MCP endpoints for five dedicated_crest tools, so they can be published to the [official MCP Registry](https://modelcontextprotocol.io/registry/quickstart) under the `io.github.benbarazandeh/` namespace. Directories that copy the registry (including [Glama](https://glama.ai/mcp/faq)) can then list each tool.
+These `server.json` files describe the hosted Apify MCP endpoints for six dedicated_crest tools, so they can be published to the [official MCP Registry](https://modelcontextprotocol.io/registry/quickstart) under the `io.github.benbarazandeh/` namespace. Directories that copy the registry (including [Glama](https://glama.ai/mcp/faq)) can then list each tool.
 
 This repo is not a standalone MCP server. The remote URL is Apify's hosted server, scoped to one Actor:
 
@@ -17,6 +17,7 @@ On first use, sign in to Apify with OAuth, or pass an Apify API token as `Author
 | FMCSA Trucking Carrier Leads | [dedicated_crest/fmcsa-trucking-carrier-leads](https://apify.com/dedicated_crest/fmcsa-trucking-carrier-leads) | [`fmcsa-trucking-carrier-leads/server.json`](fmcsa-trucking-carrier-leads/server.json) |
 | Podcast Leads Finder | [dedicated_crest/podcast-leads-finder](https://apify.com/dedicated_crest/podcast-leads-finder) | [`podcast-leads-finder/server.json`](podcast-leads-finder/server.json) |
 | TED EU Tenders Finder | [dedicated_crest/ted-eu-tenders-finder](https://apify.com/dedicated_crest/ted-eu-tenders-finder) | [`ted-eu-tenders-finder/server.json`](ted-eu-tenders-finder/server.json) |
+| UK Companies House Leads | [dedicated_crest/uk-companies-house-leads](https://apify.com/dedicated_crest/uk-companies-house-leads) | [`uk-companies-house-leads/server.json`](uk-companies-house-leads/server.json) |
 
 The generic Apify MCP server is already in the registry as `com.apify/apify-mcp-server`. Do not publish a second generic listing.
 
